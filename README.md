@@ -1,59 +1,49 @@
-# 🔬 단백체 분석 실습 강의
+# 단백체 분석 Claude Skills
 
-## 질량분석 데이터로 펩타이드를 찾아내는 과정
+단백체 분석에서 자주 만드는 그림을 **일관된 스타일**로 빠르게 생성하기 위한 Claude Skills 모음입니다.
 
----
+## 포함된 스킬
 
-## 📋 강의 개요
+| 스킬 | 명령어 | 용도 |
+|------|--------|------|
+| volcano-plot | `/volcano-plot` | Volcano plot (차등 발현 시각화) |
+| go-bubble | `/go-bubble` | GO enrichment bubble chart |
+| km-curve | `/km-curve` | Kaplan-Meier 생존 곡선 |
+| string-network | `/string-network` | STRING 단백질 네트워크 |
+| heatmap | `/heatmap` | 발현 heatmap |
 
-| 항목 | 내용 |
-|------|------|
-| 소요 시간 | 30분 ~ 1시간 |
-| 대상 | Python 입문자 |
-| 플랫폼 | GitHub Codespaces |
+## 설치 방법 (Claude Code)
 
-## 📚 강의 내용
+```bash
+# 스킬 폴더 클론
+git clone https://github.com/heeyounh/proteomics-lecture.git
+cd proteomics-lecture/skills
 
-1. **MS1/MS2 스펙트럼** 구조 이해 및 시각화
-2. **FASTA In-silico Digestion** - 단백질을 Trypsin으로 자르기
-3. **Candidate 필터링** - ppm tolerance로 후보 좁히기
-4. **PSM Score 계산** - fragment ion 매칭으로 정답 찾기
-5. **실제 데이터 규모 체감** - 왜 고성능 컴퓨팅이 필요한가
-
----
-
-## 🚀 시작 방법 (참가자 안내)
-
-### 1단계: 이 페이지에서 Codespace 열기
-
-상단의 초록색 **`<> Code`** 버튼 클릭  
-→ **`Codespaces`** 탭 클릭  
-→ **`Create codespace on main`** 클릭
-
-### 2단계: 환경 자동 설정 기다리기 (약 1~2분)
-
-모든 패키지가 자동으로 설치됩니다.
-
-### 3단계: 노트북 열기
-
-왼쪽 파일 탐색기에서 `proteomics_lecture.ipynb` 클릭
-
-### 4단계: 첫 번째 셀부터 순서대로 실행
-
-각 셀을 클릭 후 **`Shift + Enter`** 로 실행합니다.
-
----
-
-## 📦 사용 패키지
-
-```
-numpy pandas matplotlib biopython pyteomics
+# 개인 스킬 폴더로 복사
+cp -r volcano-plot go-bubble km-curve string-network heatmap ~/.claude/skills/
 ```
 
----
+## 사용 방법
 
-## 💻 강의자 참고사항
+Claude Code 세션에서:
 
-- 모든 데이터는 코드로 시뮬레이션 생성 (별도 파일 불필요)
-- 각 셀에 한글 주석 상세 포함
-- 섹션별로 독립적으로 실행 가능
+```
+/volcano-plot
+```
+
+입력하면 Claude가 사용할 데이터 구조를 확인 후 바로 코드를 생성합니다.
+
+## 공통 스타일 규칙
+
+모든 스킬은 아래 스타일을 기본으로 적용합니다:
+
+- 배경: 흰색
+- 폰트: Arial
+- 해상도: 300 DPI
+- 저장 형식: PNG (`bbox_inches='tight'`)
+- 한글 폰트: NanumGothic 자동 포함
+
+## 참고
+
+- 강의 자료: `https://github.com/heeyounh/proteomics-lecture`
+- Claude Skills 공식 문서: `https://code.claude.com/docs/en/skills`
