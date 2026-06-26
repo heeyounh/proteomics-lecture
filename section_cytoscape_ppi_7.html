@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Cytoscape PPI</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;background:#0f172a;overflow:hidden;font-family:'Noto Sans KR',sans-serif;}
+.deck{width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;}
+.slide-wrapper{width:1280px;height:720px;transform-origin:center;position:relative;overflow:hidden;flex-shrink:0;}
+.slide{position:absolute;inset:0;background:#fff;display:flex;flex-direction:column;visibility:hidden;pointer-events:none;}
+.slide.active{visibility:visible;pointer-events:auto;z-index:1;}
+.slide-header{background:#1e3a5f;color:#fff;padding:13px 40px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.header-left{display:flex;align-items:center;gap:12px;}
+.accent-bar{width:5px;height:24px;border-radius:3px;}
+.slide-header h2{font-size:21px;font-weight:500;}
+.part-badge{font-size:12px;font-weight:600;color:#4fd1c5;font-family:'JetBrains Mono',monospace;}
+.body-row{flex:1;display:flex;min-height:0;}
+.cy-wrap{flex:1;position:relative;background:#f8fafc;}
+.cy-inst{position:absolute;inset:0;width:100%;height:100%;}
+.side{width:180px;flex-shrink:0;padding:11px 13px;background:#fff;border-left:1px solid #e2e8f0;display:flex;flex-direction:column;gap:8px;overflow-y:auto;}
+.side h4{font-size:12px;font-weight:700;color:#334155;}
+.stat-row{display:flex;gap:6px;}
+.sbox{flex:1;text-align:center;background:#f8fafc;border:1px solid #e2e8f0;border-radius:5px;padding:5px;}
+.sbox .v{font-size:17px;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.sbox .l{font-size:10px;color:#64748b;}
+.cbar{width:100%;height:12px;border-radius:3px;background:linear-gradient(to right,#2166ac,#92c5de,#f7f7f7,#f4a582,#b2182b);}
+.clab{display:flex;justify-content:space-between;font-size:9px;color:#64748b;font-family:'JetBrains Mono',monospace;}
+.erow{display:flex;align-items:center;gap:5px;font-size:10.5px;color:#334155;margin:1px 0;}
+.info-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:8px 10px;font-size:11px;display:none;}
+.info-box.on{display:block;}
+.info-box strong{font-size:12px;display:block;margin-bottom:3px;}
+.info-box p{color:#475569;line-height:1.55;margin:1px 0;}
+.ctrl-btn{padding:3px 8px;border-radius:4px;border:1px solid #e2e8f0;background:white;font-size:10px;cursor:pointer;color:#334155;}
+.ctrl-btn:hover{background:#f1f5f9;}
+.prog{position:absolute;bottom:0;left:0;height:4px;background:#4fd1c5;transition:width 0.3s;z-index:10;}
+.cnt{position:absolute;bottom:9px;right:15px;z-index:10;font-family:'JetBrains Mono',monospace;font-size:13px;color:#64748b;}
+.navh{position:absolute;bottom:9px;left:15px;z-index:10;font-size:11px;color:#94a3b8;}
+</style>
+</head>
+<body>
+<div class="deck"><div class="slide-wrapper" id="wrapper">
+
+<div class="slide active" id="s1">
+  <div class="slide-header">
+    <div class="header-left"><div class="accent-bar" style="background:#E74C3C;"></div>
+      <h2>C1 클러스터 (대사형) &mdash; STRING PPI &nbsp;<span style="font-size:14px;color:#94a3b8;">실제 정량값 Z-score</span></h2></div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="ctrl-btn" id="b1fit">&#9633; Fit</button>
+      <span class="part-badge">1 / 2 &middot; STRING DB</span></div>
+  </div>
+  <div class="body-row">
+    <div class="cy-wrap"><div id="cy1" class="cy-inst"></div></div>
+    <div class="side">
+      <h4 style="color:#E74C3C;">C1 대사형 HCC</h4>
+      <div class="stat-row">
+        <div class="sbox"><div class="v" id="c1n" style="color:#E74C3C;">-</div><div class="l">단백질</div></div>
+        <div class="sbox"><div class="v" id="c1e" style="color:#64748b;">-</div><div class="l">edge</div></div>
+      </div>
+      <div><h4 style="margin-bottom:2px;">발현량 Z-score</h4>
+        <div class="cbar"></div>
+        <div class="clab"><span>낮음</span><span>높음</span></div></div>
+      <div><h4 style="margin-bottom:3px;">크기 &mdash; &minus;log&#8321;&#8320;(FDR)</h4>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:#e2e8f0;border:1px solid #94a3b8;"></div>
+          <span style="font-size:10px;color:#64748b;">낮음</span>
+          <div style="width:20px;height:20px;border-radius:50%;background:#94a3b8;border:2px solid #1e3a5f;margin-left:3px;"></div>
+          <span style="font-size:10px;color:#64748b;">높음★</span></div></div>
+      <div><h4 style="margin-bottom:3px;">Edge confidence</h4>
+        <div class="erow"><div style="height:4px;width:24px;border-radius:2px;background:#0e59a2;"></div><span>&ge;900 Very high</span></div>
+        <div class="erow"><div style="height:3px;width:24px;border-radius:2px;background:#22863a;"></div><span>700&ndash;900 High</span></div>
+        <div class="erow"><div style="height:2px;width:24px;border-radius:2px;background:#e36209;"></div><span>500&ndash;700 Medium</span></div></div>
+      <div class="info-box" id="c1info">
+        <strong id="c1ig">-</strong>
+        <p id="c1iz">-</p><p id="c1if">-</p><p id="c1ip">-</p><p id="c1id">-</p>
+      </div>
+      <p style="font-size:10px;color:#94a3b8;margin-top:auto;line-height:1.5;">클릭 &rarr; 정보<br>드래그&middot;줌 탐색</p>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="s2">
+  <div class="slide-header">
+    <div class="header-left"><div class="accent-bar" style="background:#3498DB;"></div>
+      <h2>C2 클러스터 (면역/섬유화형) &mdash; STRING PPI &nbsp;<span style="font-size:14px;color:#94a3b8;">실제 정량값 Z-score</span></h2></div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="ctrl-btn" id="b2fit">&#9633; Fit</button>
+      <span class="part-badge">2 / 2 &middot; STRING DB</span></div>
+  </div>
+  <div class="body-row">
+    <div class="cy-wrap"><div id="cy2" class="cy-inst"></div></div>
+    <div class="side">
+      <h4 style="color:#3498DB;">C2 면역/섬유화형 HCC</h4>
+      <div class="stat-row">
+        <div class="sbox"><div class="v" id="c2n" style="color:#3498DB;">-</div><div class="l">단백질</div></div>
+        <div class="sbox"><div class="v" id="c2e" style="color:#64748b;">-</div><div class="l">edge</div></div>
+      </div>
+      <div><h4 style="margin-bottom:2px;">발현량 Z-score</h4>
+        <div class="cbar"></div>
+        <div class="clab"><span>낮음</span><span>높음</span></div></div>
+      <div><h4 style="margin-bottom:3px;">크기 &mdash; &minus;log&#8321;&#8320;(FDR)</h4>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:#e2e8f0;border:1px solid #94a3b8;"></div>
+          <span style="font-size:10px;color:#64748b;">낮음</span>
+          <div style="width:20px;height:20px;border-radius:50%;background:#94a3b8;border:2px solid #1e3a5f;margin-left:3px;"></div>
+          <span style="font-size:10px;color:#64748b;">높음★</span></div></div>
+      <div><h4 style="margin-bottom:3px;">Edge confidence</h4>
+        <div class="erow"><div style="height:4px;width:24px;border-radius:2px;background:#0e59a2;"></div><span>&ge;900 Very high</span></div>
+        <div class="erow"><div style="height:3px;width:24px;border-radius:2px;background:#22863a;"></div><span>700&ndash;900 High</span></div>
+        <div class="erow"><div style="height:2px;width:24px;border-radius:2px;background:#e36209;"></div><span>500&ndash;700 Medium</span></div></div>
+      <div class="info-box" id="c2info">
+        <strong id="c2ig">-</strong>
+        <p id="c2iz">-</p><p id="c2if">-</p><p id="c2ip">-</p><p id="c2id">-</p>
+      </div>
+      <p style="font-size:10px;color:#94a3b8;margin-top:auto;line-height:1.5;">클릭 &rarr; 정보<br>드래그&middot;줌 탐색</p>
+    </div>
+  </div>
+</div>
+
+<div class="prog" id="prog"></div>
+<div class="cnt"  id="cnt">1 / 2</div>
+<div class="navh">&#8592; &#8594; 슬라이드 이동 &nbsp;&middot;&nbsp; 드래그&middot;줌 탐색</div>
+</div></div>
+
+<script>
+const slides=document.querySelectorAll('.slide'),prog=document.getElementById('prog'),
+      cnt=document.getElementById('cnt'),wrap=document.getElementById('wrapper');
+let cur=0;
+function scale(){const s=Math.min(window.innerWidth/1280,window.innerHeight/720);wrap.style.transform=`scale(${s})`;}
+window.addEventListener('resize',scale);
+function go(n){slides[cur].classList.remove('active');cur=Math.max(0,Math.min(slides.length-1,n));
+  slides[cur].classList.add('active');prog.style.width=((cur+1)/slides.length*100)+'%';
+  cnt.textContent=(cur+1)+' / '+slides.length;}
+document.addEventListener('keydown',e=>{
+  if(['ArrowRight','ArrowDown',' '].includes(e.key)){e.preventDefault();go(cur+1);}
+  if(['ArrowLeft','ArrowUp'].includes(e.key)){e.preventDefault();go(cur-1);}});
+document.querySelector('.deck').addEventListener('click',e=>{
+  if(e.target.closest('.side')||e.target.closest('.ctrl-btn')||
+     e.target.closest('#cy1')||e.target.closest('#cy2'))return;go(cur+1);});
+
+function makeCy(cid,elements,seedBorder){
+  return cytoscape({
+    container:document.getElementById(cid),
+    elements,
+    /* ★ preset: Python 계산 좌표 그대로 · fit+padding으로 화면에 맞춤 */
+    layout:{name:'preset', fit:true, padding:28},
+    style:[
+      {selector:'node',style:{
+        'label':e=>e.data('is_seed')?e.data('label')+'★':e.data('label'),
+        'background-color':'data(color)',
+        /* ★ 노드 크기 줄이기 - 화면에 많이 보이도록 */
+        'width': e=>{const n=e.data('neglogfdr')||1,s=e.data('is_seed');return(s?30:18)+Math.min(n*3,14);},
+        'height':e=>{const n=e.data('neglogfdr')||1,s=e.data('is_seed');return(s?30:18)+Math.min(n*3,14);},
+        'border-width':e=>e.data('is_seed')?2.5:1,
+        'border-color':e=>e.data('is_seed')?seedBorder:'#94a3b8',
+        /* ★ 폰트 크기 유지 - 축소 최소화로 잘 읽힘 */
+        'font-size':e=>e.data('is_seed')?11:9,
+        'font-weight':e=>e.data('is_seed')?'bold':'normal',
+        'text-valign':'center','text-halign':'center',
+        'color':'#1e293b','text-outline-width':1.5,
+        'text-outline-color':'rgba(255,255,255,0.9)','cursor':'pointer'
+      }},
+      {selector:'node:selected',style:{'border-width':3,'border-color':'#fbbf24'}},
+      {selector:'edge',style:{'width':'data(width)','line-color':'data(ecolor)','opacity':0.75,'curve-style':'bezier'}},
+      {selector:'edge:selected',style:{'opacity':1}}
+    ],
+    wheelSensitivity:0.3,
+    minZoom:0.3, maxZoom:4
+  });
+}
+
+function bindInfo(cy,pfx){
+  cy.on('tap','node',e=>{
+    const d=e.target.data();
+    document.getElementById(pfx+'ig').textContent=d.label+(d.is_seed?' ★':'');
+    document.getElementById(pfx+'iz').textContent='Z-score: '+d.z;
+    document.getElementById(pfx+'if').textContent='log₂FC: '+(d.fc>=0?'+':'')+d.fc;
+    document.getElementById(pfx+'ip').textContent='FDR: '+(d.fdr<0.001?'<0.001':d.fdr);
+    document.getElementById(pfx+'id').textContent='연결 수: '+e.target.degree();
+    document.getElementById(pfx+'info').classList.add('on');
+  });
+  cy.on('tap',evt=>{if(evt.target===cy)document.getElementById(pfx+'info').classList.remove('on');});
+}
+
+window.addEventListener('load',()=>{
+  scale();
+  const cy1=makeCy('cy1',[{"data": {"id": "Q9H8M1", "label": "COQ10B", "fc": 1.612, "fdr": 0.0, "neglogfdr": 5.23, "z": 0.573, "color": "#e3b7bd", "is_seed": true}, "position": {"x": 763.6, "y": 100.0}}, {"data": {"id": "P00480", "label": "OTC", "fc": 1.399, "fdr": 0.0, "neglogfdr": 9.21, "z": 0.544, "color": "#e4bac0", "is_seed": false}, "position": {"x": 377.6, "y": 320.3}}, {"data": {"id": "Q9H2M3", "label": "BHMT2", "fc": 1.53, "fdr": 0.0004, "neglogfdr": 3.45, "z": 0.511, "color": "#e5bec3", "is_seed": true}, "position": {"x": 843.6, "y": 100.0}}, {"data": {"id": "P21439", "label": "ABCB4", "fc": 1.837, "fdr": 0.0, "neglogfdr": 6.67, "z": 0.713, "color": "#dea8ae", "is_seed": true}, "position": {"x": 467.4, "y": 211.0}}, {"data": {"id": "Q7Z570", "label": "ZNF804A", "fc": 1.61, "fdr": 0.0296, "neglogfdr": 1.53, "z": 0.527, "color": "#e5bcc1", "is_seed": true}, "position": {"x": 163.2, "y": 472.5}}, {"data": {"id": "Q9BQQ7", "label": "RTP3", "fc": 1.46, "fdr": 0.0119, "neglogfdr": 1.92, "z": 0.663, "color": "#e0adb3", "is_seed": true}, "position": {"x": 113.4, "y": 324.4}}, {"data": {"id": "P30838", "label": "ALDH3A1", "fc": 1.498, "fdr": 0.0173, "neglogfdr": 1.76, "z": 0.465, "color": "#e7c3c8", "is_seed": true}, "position": {"x": 343.8, "y": 148.4}}, {"data": {"id": "P31513", "label": "FMO3", "fc": 1.575, "fdr": 0.0, "neglogfdr": 7.03, "z": 0.438, "color": "#e8c6ca", "is_seed": true}, "position": {"x": 464.0, "y": 66.7}}, {"data": {"id": "Q9NVC3", "label": "SLC38A7", "fc": 1.519, "fdr": 0.0028, "neglogfdr": 2.56, "z": 0.59, "color": "#e3b5bb", "is_seed": true}, "position": {"x": 923.6, "y": 100.0}}, {"data": {"id": "P06744", "label": "GPI", "fc": 0.421, "fdr": 0.0536, "neglogfdr": 1.27, "z": 0.094, "color": "#f4eded", "is_seed": false}, "position": {"x": 383.2, "y": 470.0}}, {"data": {"id": "P37287", "label": "PIGA", "fc": 1.604, "fdr": 0.0482, "neglogfdr": 1.32, "z": 0.578, "color": "#e3b7bc", "is_seed": true}, "position": {"x": 404.7, "y": 419.5}}, {"data": {"id": "P24298", "label": "GPT", "fc": 1.038, "fdr": 0.0, "neglogfdr": 6.62, "z": 0.484, "color": "#e6c1c6", "is_seed": false}, "position": {"x": 377.5, "y": 273.5}}, {"data": {"id": "Q02779", "label": "MAP3K10", "fc": 1.656, "fdr": 0.0163, "neglogfdr": 1.79, "z": 0.327, "color": "#ecd3d6", "is_seed": true}, "position": {"x": 763.6, "y": 180.0}}, {"data": {"id": "Q68CK6", "label": "ACSM2B", "fc": 1.661, "fdr": 0.0, "neglogfdr": 8.62, "z": 0.618, "color": "#e2b2b8", "is_seed": true}, "position": {"x": 843.6, "y": 180.0}}, {"data": {"id": "O95479", "label": "H6PD", "fc": 0.525, "fdr": 0.004, "neglogfdr": 2.4, "z": 0.254, "color": "#eedbdd", "is_seed": false}, "position": {"x": 350.3, "y": 459.4}}, {"data": {"id": "P49796", "label": "RGS3", "fc": 1.659, "fdr": 0.0292, "neglogfdr": 1.53, "z": 1.157, "color": "#cf7681", "is_seed": true}, "position": {"x": 923.6, "y": 180.0}}, {"data": {"id": "P15104", "label": "GLUL", "fc": 1.518, "fdr": 0.0002, "neglogfdr": 3.62, "z": 0.372, "color": "#eaced1", "is_seed": true}, "position": {"x": 320.3, "y": 363.0}}, {"data": {"id": "Q8NCL8", "label": "TMEM116", "fc": 0, "fdr": 1, "neglogfdr": -0.0, "z": 0.0, "color": "#f7f7f7", "is_seed": false}, "position": {"x": 218.4, "y": 332.2}}, {"data": {"id": "Q14973", "label": "SLC10A1", "fc": 1.95, "fdr": 0.0035, "neglogfdr": 2.46, "z": 0.656, "color": "#e0aeb4", "is_seed": true}, "position": {"x": 421.3, "y": 192.0}}, {"data": {"id": "O43295", "label": "SRGAP3", "fc": 2.173, "fdr": 0.0302, "neglogfdr": 1.52, "z": 1.044, "color": "#d3838d", "is_seed": true}, "position": {"x": 763.6, "y": 260.0}}, {"data": {"id": "Q8N159", "label": "NAGS", "fc": 2.091, "fdr": 0.0028, "neglogfdr": 2.56, "z": 0.501, "color": "#e6bfc4", "is_seed": true}, "position": {"x": 304.1, "y": 317.2}}, {"data": {"id": "Q969I3", "label": "GLYATL1", "fc": 1.528, "fdr": 0.0005, "neglogfdr": 3.33, "z": 0.71, "color": "#dfa8af", "is_seed": true}, "position": {"x": 843.6, "y": 260.0}}, {"data": {"id": "O43272", "label": "PRODH", "fc": 0.058, "fdr": 0.9392, "neglogfdr": 0.03, "z": -0.117, "color": "#ebeff3", "is_seed": false}, "position": {"x": 235.9, "y": 406.7}}, {"data": {"id": "P05181", "label": "CYP2E1", "fc": 0.206, "fdr": 0.5152, "neglogfdr": 0.29, "z": 0.071, "color": "#f5eff0", "is_seed": false}, "position": {"x": 405.0, "y": 121.1}}, {"data": {"id": "P80404", "label": "ABAT", "fc": 1.454, "fdr": 0.0, "neglogfdr": 10, "z": 0.59, "color": "#e3b5bb", "is_seed": false}, "position": {"x": 310.9, "y": 241.2}}, {"data": {"id": "P19224", "label": "UGT1A6", "fc": 0.685, "fdr": 0.017, "neglogfdr": 1.77, "z": 0.277, "color": "#edd8db", "is_seed": false}, "position": {"x": 401.3, "y": 87.3}}, {"data": {"id": "O75469", "label": "NR1I2", "fc": 0, "fdr": 1, "neglogfdr": -0.0, "z": 0.0, "color": "#f7f7f7", "is_seed": false}, "position": {"x": 489.6, "y": 142.7}}, {"data": {"id": "O00757", "label": "FBP2", "fc": 1.497, "fdr": 0.0036, "neglogfdr": 2.45, "z": 0.499, "color": "#e6bfc4", "is_seed": true}, "position": {"x": 384.1, "y": 531.0}}, {"data": {"source": "P00480", "target": "P15104", "score": 596, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P00480", "target": "Q8N159", "score": 977, "ecolor": "#0e59a2", "width": 2.0}}, {"data": {"source": "P00480", "target": "P37287", "score": 541, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P00480", "target": "Q14973", "score": 516, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P21439", "target": "Q14973", "score": 789, "ecolor": "#22863a", "width": 1.4}}, {"data": {"source": "O75469", "target": "Q14973", "score": 663, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P19224", "target": "Q14973", "score": 525, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P05181", "target": "Q14973", "score": 719, "ecolor": "#22863a", "width": 1.4}}, {"data": {"source": "P24298", "target": "Q14973", "score": 521, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P21439", "target": "P24298", "score": 534, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "O75469", "target": "P21439", "score": 710, "ecolor": "#22863a", "width": 1.4}}, {"data": {"source": "O43272", "target": "Q8N159", "score": 520, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P80404", "target": "Q8N159", "score": 582, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P15104", "target": "Q8N159", "score": 562, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "Q8N159", "target": "Q8NCL8", "score": 652, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P24298", "target": "Q8N159", "score": 940, "ecolor": "#0e59a2", "width": 2.0}}, {"data": {"source": "Q8NCL8", "target": "Q9BQQ7", "score": 513, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P19224", "target": "P31513", "score": 587, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P19224", "target": "P30838", "score": 578, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "O43272", "target": "Q7Z570", "score": 610, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P15104", "target": "P24298", "score": 579, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P06744", "target": "P15104", "score": 562, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "O95479", "target": "P15104", "score": 604, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P15104", "target": "P80404", "score": 562, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P15104", "target": "Q8NCL8", "score": 552, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "O43272", "target": "P15104", "score": 517, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "O75469", "target": "P31513", "score": 548, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P05181", "target": "P31513", "score": 528, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "O00757", "target": "O95479", "score": 610, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "O00757", "target": "P06744", "score": 992, "ecolor": "#0e59a2", "width": 2.0}}, {"data": {"source": "P06744", "target": "P37287", "score": 613, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "O95479", "target": "P37287", "score": 666, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P30838", "target": "P80404", "score": 942, "ecolor": "#0e59a2", "width": 2.0}}, {"data": {"source": "P05181", "target": "P30838", "score": 939, "ecolor": "#0e59a2", "width": 2.0}}],'#7f1d1d');
+  const cy2=makeCy('cy2',[{"data": {"id": "P00533", "label": "EGFR", "fc": 0.13, "fdr": 0.5277, "neglogfdr": 0.28, "z": -0.365, "color": "#d0dde9", "is_seed": false}, "position": {"x": 317.0, "y": 263.0}}, {"data": {"id": "P07900", "label": "HSP90AA1", "fc": -0.039, "fdr": 0.8373, "neglogfdr": 0.08, "z": -0.161, "color": "#e6ebf1", "is_seed": false}, "position": {"x": 228.3, "y": 255.7}}, {"data": {"id": "Q9P2K5", "label": "MYEF2", "fc": -1.996, "fdr": 0.0017, "neglogfdr": 2.76, "z": 0.681, "color": "#e0abb2", "is_seed": true}, "position": {"x": 763.6, "y": 100.0}}, {"data": {"id": "Q9GIY3", "label": "Q9GIY3", "fc": -2.05, "fdr": 0.0481, "neglogfdr": 1.32, "z": 0.923, "color": "#d79099", "is_seed": true}, "position": {"x": 843.6, "y": 100.0}}, {"data": {"id": "P04406", "label": "GAPDH", "fc": -0.044, "fdr": 0.8212, "neglogfdr": 0.09, "z": -0.07, "color": "#f0f2f4", "is_seed": false}, "position": {"x": 403.6, "y": 315.3}}, {"data": {"id": "Q9BXS4", "label": "TMEM59", "fc": -2.753, "fdr": 0.0, "neglogfdr": 9.15, "z": 2.672, "color": "#b2182b", "is_seed": true}, "position": {"x": 141.0, "y": 217.4}}, {"data": {"id": "Q8N6C5", "label": "IGSF1", "fc": -1.869, "fdr": 0.0189, "neglogfdr": 1.72, "z": 0.723, "color": "#dea6ad", "is_seed": true}, "position": {"x": 923.6, "y": 100.0}}, {"data": {"id": "P04626", "label": "ERBB2", "fc": 1.045, "fdr": 0.1246, "neglogfdr": 0.9, "z": -0.856, "color": "#9bb9d7", "is_seed": false}, "position": {"x": 349.4, "y": 208.6}}, {"data": {"id": "O15439", "label": "ABCC4", "fc": -1.501, "fdr": 0.0025, "neglogfdr": 2.6, "z": 0.857, "color": "#d997a0", "is_seed": true}, "position": {"x": 582.8, "y": 288.6}}, {"data": {"id": "P10145", "label": "CXCL8", "fc": 0, "fdr": 1, "neglogfdr": -0.0, "z": 0.0, "color": "#f7f7f7", "is_seed": false}, "position": {"x": 397.9, "y": 347.4}}, {"data": {"id": "Q8NC60", "label": "NOA1", "fc": -1.874, "fdr": 0.0071, "neglogfdr": 2.15, "z": 1.005, "color": "#d48790", "is_seed": true}, "position": {"x": 763.6, "y": 180.0}}, {"data": {"id": "P16070", "label": "CD44", "fc": -1.019, "fdr": 0.0098, "neglogfdr": 2.01, "z": 0.541, "color": "#e4bbc0", "is_seed": false}, "position": {"x": 411.1, "y": 283.0}}, {"data": {"id": "P05109", "label": "S100A8", "fc": -1.693, "fdr": 0.0, "neglogfdr": 8.58, "z": 0.688, "color": "#dfaab1", "is_seed": true}, "position": {"x": 432.8, "y": 333.2}}, {"data": {"id": "P35442", "label": "THBS2", "fc": -1.585, "fdr": 0.0019, "neglogfdr": 2.72, "z": 0.563, "color": "#e4b8be", "is_seed": true}, "position": {"x": 308.1, "y": 398.1}}, {"data": {"id": "P16422", "label": "EPCAM", "fc": -1.809, "fdr": 0.0375, "neglogfdr": 1.43, "z": 0.465, "color": "#e7c3c8", "is_seed": true}, "position": {"x": 361.2, "y": 283.9}}, {"data": {"id": "Q96AY3", "label": "FKBP10", "fc": -1.626, "fdr": 0.002, "neglogfdr": 2.7, "z": 0.497, "color": "#e6c0c4", "is_seed": true}, "position": {"x": 187.4, "y": 337.3}}, {"data": {"id": "P49913", "label": "CAMP", "fc": -1.758, "fdr": 0.0228, "neglogfdr": 1.64, "z": 0.798, "color": "#db9ea6", "is_seed": true}, "position": {"x": 373.2, "y": 303.3}}, {"data": {"id": "Q8TE82", "label": "SH3TC1", "fc": -4.262, "fdr": 0.014, "neglogfdr": 1.86, "z": 0.943, "color": "#d68e97", "is_seed": true}, "position": {"x": 843.6, "y": 180.0}}, {"data": {"id": "P02452", "label": "COL1A1", "fc": -0.602, "fdr": 0.0377, "neglogfdr": 1.42, "z": 0.303, "color": "#edd5d8", "is_seed": false}, "position": {"x": 250.4, "y": 374.8}}, {"data": {"id": "P02751", "label": "FN1", "fc": -0.381, "fdr": 0.0436, "neglogfdr": 1.36, "z": 0.246, "color": "#efdcde", "is_seed": false}, "position": {"x": 350.0, "y": 361.4}}, {"data": {"id": "Q6ZV29", "label": "PNPLA7", "fc": -2.087, "fdr": 0.0344, "neglogfdr": 1.46, "z": 0.951, "color": "#d68d96", "is_seed": true}, "position": {"x": 923.6, "y": 180.0}}, {"data": {"id": "P05231", "label": "IL6", "fc": 0, "fdr": 1, "neglogfdr": -0.0, "z": 0.0, "color": "#f7f7f7", "is_seed": false}, "position": {"x": 372.9, "y": 370.1}}, {"data": {"id": "Q9NRC6", "label": "SPTBN5", "fc": -3.009, "fdr": 0.0002, "neglogfdr": 3.77, "z": 1.696, "color": "#bc3a4a", "is_seed": true}, "position": {"x": 763.6, "y": 260.0}}, {"data": {"id": "O14511", "label": "NRG2", "fc": -1.786, "fdr": 0.0296, "neglogfdr": 1.53, "z": 1.029, "color": "#d3848e", "is_seed": true}, "position": {"x": 287.3, "y": 209.1}}, {"data": {"id": "Q07157", "label": "TJP1", "fc": 0.311, "fdr": 0.0854, "neglogfdr": 1.07, "z": -0.53, "color": "#bed1e3", "is_seed": false}, "position": {"x": 483.0, "y": 295.9}}, {"data": {"id": "P05121", "label": "SERPINE1", "fc": -1.811, "fdr": 0.009, "neglogfdr": 2.05, "z": 0.569, "color": "#e3b8bd", "is_seed": true}, "position": {"x": 339.0, "y": 333.5}}, {"data": {"id": "Q13308", "label": "PTK7", "fc": -1.67, "fdr": 0.0006, "neglogfdr": 3.26, "z": 1.073, "color": "#d27f8a", "is_seed": true}, "position": {"x": 359.4, "y": 120.2}}, {"data": {"id": "P21817", "label": "RYR1", "fc": -1.545, "fdr": 0.001, "neglogfdr": 3.01, "z": 1.183, "color": "#ce737e", "is_seed": true}, "position": {"x": 843.6, "y": 260.0}}, {"data": {"source": "P00533", "target": "P05121", "score": 699, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P05121", "target": "P10145", "score": 736, "ecolor": "#22863a", "width": 1.4}}, {"data": {"source": "P05121", "target": "P35442", "score": 547, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P05121", "target": "P16422", "score": 538, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P04406", "target": "P05121", "score": 745, "ecolor": "#22863a", "width": 1.4}}, {"data": {"source": "P02452", "target": "P05121", "score": 643, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P05121", "target": "P16070", "score": 684, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P05121", "target": "P05231", "score": 849, "ecolor": "#22863a", "width": 1.4}}, {"data": {"source": "P02751", "target": "P05121", "score": 790, "ecolor": "#22863a", "width": 1.4}}, {"data": {"source": "P02452", "target": "Q96AY3", "score": 804, "ecolor": "#22863a", "width": 1.4}}, {"data": {"source": "P02452", "target": "P35442", "score": 828, "ecolor": "#22863a", "width": 1.4}}, {"data": {"source": "P07900", "target": "Q9BXS4", "score": 570, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P16070", "target": "P16422", "score": 971, "ecolor": "#0e59a2", "width": 2.0}}, {"data": {"source": "P10145", "target": "P16422", "score": 615, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P00533", "target": "P16422", "score": 923, "ecolor": "#0e59a2", "width": 2.0}}, {"data": {"source": "P04406", "target": "P16422", "score": 591, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P07900", "target": "P16422", "score": 511, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P02751", "target": "P16422", "score": 581, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P05231", "target": "P16422", "score": 510, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P04626", "target": "P16422", "score": 927, "ecolor": "#0e59a2", "width": 2.0}}, {"data": {"source": "P16422", "target": "Q07157", "score": 600, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P04626", "target": "Q13308", "score": 716, "ecolor": "#22863a", "width": 1.4}}, {"data": {"source": "P04626", "target": "P49913", "score": 676, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "O14511", "target": "P04626", "score": 994, "ecolor": "#0e59a2", "width": 2.0}}, {"data": {"source": "P00533", "target": "P49913", "score": 598, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "O14511", "target": "P00533", "score": 996, "ecolor": "#0e59a2", "width": 2.0}}, {"data": {"source": "P02751", "target": "P49913", "score": 597, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P05231", "target": "P49913", "score": 657, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P05109", "target": "P49913", "score": 622, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P10145", "target": "P49913", "score": 788, "ecolor": "#22863a", "width": 1.4}}, {"data": {"source": "P04406", "target": "P49913", "score": 961, "ecolor": "#0e59a2", "width": 2.0}}, {"data": {"source": "P05109", "target": "P10145", "score": 763, "ecolor": "#22863a", "width": 1.4}}, {"data": {"source": "P07900", "target": "Q96AY3", "score": 500, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "O14511", "target": "P07900", "score": 517, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P02751", "target": "P35442", "score": 854, "ecolor": "#22863a", "width": 1.4}}, {"data": {"source": "P02751", "target": "P05109", "score": 544, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "O15439", "target": "Q07157", "score": 513, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P05109", "target": "Q07157", "score": 980, "ecolor": "#0e59a2", "width": 2.0}}, {"data": {"source": "P05231", "target": "P35442", "score": 610, "ecolor": "#e36209", "width": 0.9}}, {"data": {"source": "P05109", "target": "P16070", "score": 887, "ecolor": "#22863a", "width": 1.4}}, {"data": {"source": "P04406", "target": "P05109", "score": 723, "ecolor": "#22863a", "width": 1.4}}, {"data": {"source": "P05109", "target": "P05231", "score": 555, "ecolor": "#e36209", "width": 0.9}}],'#1e3a8a');
+  document.getElementById('c1n').textContent=cy1.nodes().length;
+  document.getElementById('c1e').textContent=cy1.edges().length;
+  document.getElementById('c2n').textContent=cy2.nodes().length;
+  document.getElementById('c2e').textContent=cy2.edges().length;
+  bindInfo(cy1,'c1'); bindInfo(cy2,'c2');
+  document.getElementById('b1fit').onclick=()=>cy1.fit(null,28);
+  document.getElementById('b2fit').onclick=()=>cy2.fit(null,28);
+  go(0);
+});
+</script>
+</body></html>
